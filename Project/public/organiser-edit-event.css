@@ -1,0 +1,108 @@
+/* ─────────────────────────────
+ *  Global Background & Layout
+ * ───────────────────────────── */
+.main-home-bg{
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  color:#fff;
+}
+
+/* ─────────────────────────────
+ *  Header & Navigation
+ * ───────────────────────────── */
+.main-header{
+  height:80px;
+  background:rgba(0,0,0,.2);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+
+.logo h3{margin:0;font-weight:700}
+
+.nav-links a{
+  color:#fff;
+  margin-left:1rem;
+  font-weight:500;
+  text-decoration:none;
+  transition:all .3s ease;
+}
+.nav-links a:hover{
+  background:linear-gradient(to right,#fc466b,#3f5efb);
+  color:transparent;
+  background-clip:text;
+}
+.nav-links a.inactive{
+  opacity:.5;
+  pointer-events:none;
+  cursor:default;
+}
+
+/* ─────────────────────────────
+ *  Form & Validation Helpers
+ * ───────────────────────────── */
+.error{color:#ff6b6b;margin-bottom:1rem}
+label{display:block;margin-top:.75rem}
+input,textarea,select{width:100%;box-sizing:border-box}
+.char-count{font-size:.8rem;color:#bbb;float:right}
+
+/* ─────────────────────────────
+ *  Card Components
+ * ───────────────────────────── */
+.mega-card{
+  background:linear-gradient(135deg,rgba(15,12,41,.9),rgba(48,43,99,.9));
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:1.25rem;
+  padding:2.5rem 3rem;
+  box-shadow:0 10px 28px rgba(0,0,0,.55);
+  max-width:1040px;margin-inline:auto
+}
+.sub-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:.85rem;
+  padding:1.5rem 1.75rem;
+  margin-bottom:2rem;
+  box-shadow:inset 0 0 8px rgba(0,0,0,.2)
+}
+.sub-card h5{margin:0 0 1rem;font-weight:600;color:#e0e0ff}
+
+fieldset{
+  border:2px solid #6a5af9;
+  padding:1rem;
+  border-radius:.6rem;
+  margin-top:1.5rem
+}
+fieldset legend{font-weight:700;padding:0 .5rem;color:#6a5af9}
+
+.promo-code-row,.custom-concession-row{
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:.6rem;
+  padding:1rem;
+  margin-bottom:1rem
+}
+
+/* ─────────────────────────────
+ *  Buttons
+ * ───────────────────────────── */
+.btn-gradient{
+  background:linear-gradient(135deg,#ff0058,#6a5af9);
+  color:#fff!important;
+  border:none;
+  transition:opacity .25s,transform .25s;
+}
+.btn-gradient:hover{opacity:.9;transform:translateY(-2px)}
+.btn-gradient:active{opacity:.85;transform:translateY(1px)}
+
+/* ─────────────────────────────
+ *  Footer 
+ * ───────────────────────────── */
+.main-footer{
+  background:rgba(0,0,0,.1);
+  border-top:1px solid rgba(255,255,255,.1);
+  color:#ccc;
+  font-size:.9rem;
+  padding:.5rem;
+}

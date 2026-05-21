@@ -1,0 +1,214 @@
+/* ─────────────────────────────
+ *  Global Background & Layout
+ * ───────────────────────────── */
+.main-home-bg {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+/* ─────────────────────────────
+ *  Header & Navigation
+ * ───────────────────────────── */
+.main-header {
+  height: 80px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.logo h3 { margin: 0; font-weight: 700; }
+
+.nav-links a {
+  color: #fff;
+  margin-left: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+.nav-links a:hover {
+  background: linear-gradient(to right, #fc466b, #3f5efb);
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* ─────────────────────────────
+ *  Hero
+ * ───────────────────────────── */
+.hero        { padding: 2rem 1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+.hero h1     { font-size: 2.7rem; }
+.hero p      { font-size: 1.2rem; }
+
+/* ─────────────────────────────
+ *  Buttons & Shadows
+ * ───────────────────────────── */
+.btn-gradient{
+  background: linear-gradient(135deg,#ff0058,#6a5af9);
+  color:#fff !important;
+  border:none;
+  transition: opacity .25s, transform .25s;
+}
+.btn-gradient:hover  { opacity:.9;  transform:translateY(-2px); }
+.btn-gradient:active { opacity:.85; transform:translateY(1px); }
+
+.shadow-sm { box-shadow: 0 4px 14px rgba(0,0,0,0.25) !important; }
+
+/* ─────────────────────────────
+ *  Section / Card Layout
+ * ───────────────────────────── */
+.section-box{
+  background:linear-gradient(135deg,rgba(15,12,41,.85),rgba(48,43,99,.85));
+  border:none;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6);
+  border-radius:1rem;
+  backdrop-filter:blur(6px);
+  padding:1.75rem 1.5rem;
+  margin-bottom:1.75rem;
+}
+.card.bg-transparent{
+  backdrop-filter:blur(6px);
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:1rem;
+}
+.card.bg-transparent .card-body{ padding:1.5rem; }
+.card.bg-light.shadow-sm{ border:none; border-radius:1rem; }
+
+/* ─────────────────────────────
+ *  Legends & Ticket Rows
+ * ───────────────────────────── */
+legend{
+  font-size:1rem;
+  font-weight:600;
+  margin-bottom:.9rem;
+  color:#e0e0ff;
+}
+.ticket-row{
+  background:rgba(255,255,255,0.02);
+  border-radius:.65rem;
+  padding:.95rem 1.2rem;
+  transition:background .25s, box-shadow .25s;
+}
+.ticket-row:hover{
+  background:rgba(255,255,255,0.05);
+  box-shadow:0 0 .5rem rgba(255,255,255,0.1);
+}
+.ticket-label { font-size:1rem; font-weight:600; min-width:120px; display:inline-block; }
+.ticket-price { font-size:.9rem; color:#5fbdff; font-weight:600; }
+.ticket-input-box{ min-width:160px; display:flex; align-items:center; justify-content:end; gap:.5rem; }
+.ticket-input-box input{ width:80px; height:38px; font-weight:600; text-align:center; }
+
+/* ─────────────────────────────
+ *  Payment Buttons
+ * ───────────────────────────── */
+.pay-btn{
+  background:rgba(255,255,255,0.04);
+  border:none;
+  padding:.6rem 1.2rem;
+  border-radius:.6rem;
+  font-size:.9rem;
+  color:#fff;
+  backdrop-filter:blur(4px);
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
+  transition:background .3s, box-shadow .3s, transform .2s;
+}
+.pay-btn:hover:not(.active){
+  background:rgba(255,255,255,0.08);
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  transform:translateY(-1px);
+}
+.pay-btn.active{
+  background:linear-gradient(135deg,#ff0058,#6a5af9);
+  color:#fff;
+  box-shadow:0 6px 20px rgba(255,0,88,0.5);
+  transform:scale(1.02);
+}
+
+/* ─────────────────────────────
+ *  Coupon & Summary
+ * ───────────────────────────── */
+#couponInput{
+  background:rgba(0,0,0,0.4);
+  border:none;
+  color:#fff;
+}
+#couponInput::placeholder{ color:#ffffff !important; opacity:1; }
+#couponInput:disabled    { opacity:.55; }
+#applyCoupon             { min-width:90px; }
+
+#summaryBox{
+  border:none;
+  box-shadow:0 8px 24px rgba(0,0,0,0.6);
+  border-radius:1rem;
+  padding:1.5rem;
+  position:sticky;
+  top:100px;
+}
+#ticketBreakdown div          { display:flex; justify-content:space-between; }
+#ticketBreakdown div + div    { margin-top:.25rem; }
+#finalTotal                   { text-align:right; font-size:1.25rem; }
+#guests .ticket-row           { padding:.8rem 1rem; }
+
+/* ─────────────────────────────
+ *  Alerts
+ * ───────────────────────────── */
+.alert{
+  padding:.75rem 1rem;
+  border-radius:6px;
+  font-size:.95rem;
+  font-weight:500;
+  margin-bottom:1rem;
+  border:1px solid rgba(255,255,255,0.1);
+  backdrop-filter:blur(5px);
+  display:flex; justify-content:center; align-items:center; gap:.5rem; text-align:center;
+}
+.alert-info      { background:linear-gradient(to right,#00c9ff,#92fe9d);  color:#0f0f0f; }
+.alert-warning   { background:linear-gradient(to right,#fceabb,#f8b500);   color:#000;    }
+.alert-danger    { background:linear-gradient(to right,#ff4b2b,#ff416c);   color:#fff;    }
+.alert-secondary { background:linear-gradient(to right,#434343,#000000);   color:#fff;    }
+.alert a         { color:#fff; }
+
+.alert-countdown{
+  display:flex; justify-content:center; align-items:center;
+  padding:.75rem 1rem; margin-bottom:1rem;
+  border-radius:6px; font-size:.95rem; font-weight:500; color:#fff;
+  background:linear-gradient(135deg,#3d2354 0%,#6b4f8a 100%);
+  border:1px solid rgba(255,255,255,0.1);
+  backdrop-filter:blur(5px);
+}
+.alert-countdown .countdown-timer{ font-weight:600; margin-left:.5rem; }
+
+/* ─────────────────────────────
+ *  Footer  
+ * ───────────────────────────── */
+.main-footer{
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-top: auto;
+  padding: 0.5rem;
+}
+
+/* ─────────────────────────────
+ *  Animations  (fade / slide)
+ * ───────────────────────────── */
+@keyframes fadeSlideUp{
+  0%   { opacity:0; transform:translateY(30px); }
+  100% { opacity:1; transform:translateY(0);    }
+}
+.fade-up        { opacity:0; animation:fadeSlideUp 3s ease forwards; }
+.fade-in        { opacity:0; transform:translateY(20px);  transition:opacity .6s ease-out, transform .6s ease-out; }
+.fade-in-up     { opacity:0; transform:translateY(40px);  transition:opacity .6s ease-out, transform .6s ease-out; }
+.visible.fade-in,
+.visible.fade-in-up { opacity:1; transform:translateY(0); }
+
+/* ─────────────────────────────
+ *  Responsive Tweaks 
+ * ───────────────────────────── */
+@media (max-width:576px){
+  .section-box { padding:1.25rem; }
+  legend       { font-size:.93rem; }
+}

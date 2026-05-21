@@ -1,0 +1,165 @@
+/* ─────────────────────────────
+ *  Global Background & Layout
+ * ───────────────────────────── */
+.main-home-bg {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+.main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-top: 2rem;
+}
+
+/* ─────────────────────────────
+ *  Header & Navigation
+ * ───────────────────────────── */
+.main-header {
+  height: 80px;
+  background: rgba(0, 0, 0, .2);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+
+.logo h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.nav-links a {
+  color: #fff;
+  margin-left: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all .3s ease;
+}
+
+.nav-links a:hover {
+  background: linear-gradient(to right, #fc466b, #3f5efb);
+  color: transparent;
+  background-clip: text;
+}
+
+/* ─────────────────────────────
+ *  Hero Section
+ * ───────────────────────────── */
+.hero {
+  padding: 2rem 1rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, .3);
+}
+
+.hero h1 { font-size: 2.7rem; }
+.hero p  { font-size: 1.2rem; }
+
+/* ─────────────────────────────
+ *  Buttons
+ *   – Primary Gradient
+ *   – Outline Light
+ * ───────────────────────────── */
+a.btn-gradient,
+button.btn-gradient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #ff0058, #6a5af9);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 12px;
+  padding: .375rem .75rem;
+  line-height: 1.5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
+  transition: all .3s ease-in-out;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a.btn-gradient:hover,
+button.btn-gradient:hover {
+  opacity: .9;
+  transform: scale(1.02);
+}
+
+.btn-outline-light {
+  border: 2px solid #fff;
+  color: #fff;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all .3s ease-in-out;
+}
+
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, .1);
+  color: white;
+  transform: scale(1.02);
+}
+
+/* ─────────────────────────────
+ *  “How It Works” Cards
+ * ───────────────────────────── */
+.how-box {
+  background: linear-gradient(135deg, rgba(15, 12, 41, .85), rgba(48, 43, 99, .85));
+  border: 1px solid rgba(255, 255, 255, .05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .25);
+  backdrop-filter: blur(3px);
+  transition: transform .3s ease, background .3s ease;
+}
+
+.how-box:hover {
+  background: linear-gradient(135deg, rgba(48, 43, 99, .95), rgba(36, 36, 62, .95));
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35);
+}
+
+/* ─────────────────────────────
+ *  Live Stats Section
+ * ───────────────────────────── */
+.live-stats h3 { font-size: 2.5rem; }
+.live-stats p  { font-size: 1.1rem; margin-top: .5rem; }
+
+/* ─────────────────────────────
+ *  Footer
+ * ───────────────────────────── */
+.main-footer {
+  background: rgba(0, 0, 0, .1);
+  border-top: 1px solid rgba(255, 255, 255, .1);
+  color: #ccc;
+  font-size: .9rem;
+  padding: .5rem;
+}
+
+/* ─────────────────────────────
+ *  Animations (last)
+ * ───────────────────────────── */
+@keyframes fadeUpAlt {
+  0%   { opacity: 0; transform: translateY(45px) scale(.97); }
+  60%  { opacity: .6; transform: translateY(-6px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.fade-up-alt {
+  opacity: 0;
+  transform: translateY(45px) scale(.97);
+}
+
+.animate.fade-up-alt {
+  animation: fadeUpAlt .8s cubic-bezier(.25, .8, .25, 1) forwards;
+}
+
+/* ─────────────────────────────
+ *  Responsive Tweaks (≤ 768 px)
+ * ───────────────────────────── */
+@media (max-width: 768px) {
+  .hero              { padding: 1.5rem 1rem; }
+  .live-stats h3     { font-size: 2rem; }
+  .main-header       { height: 70px; }
+}

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ─────────────── Meta & Title ─────────────── -->
+  <meta charset="utf-8">
+  <title><%= event.title %> – Book tickets</title>
+
+  <!-- ─────────────── External Styles ──────────────── -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- ─────────────── Custom CSS ──────────────── -->
+  <link rel="stylesheet" href="/attendee-event.css">
+
+  <!-- ─────────────── Inline Overrides ──────────────── -->
+  <style>
+    body { font-family: "Inter", sans-serif; line-height: 1.45; }
+    fieldset, legend { border: 0; margin: 0; padding: 0; }
+    legend { font-size: 1rem; font-weight: 600; margin-bottom: .9rem; color: #e0e0ff; }
+    .ticket-price { color: #5fbdff; font-weight: 600; font-size: .875rem; }
+    #formError { display: none; }
+    #contactPaymentWrap { display: none; }
+    .pay-btn.active { background: linear-gradient(135deg, #ff0058, #6a5af9) !important; color: #fff !important; }
+  </style>
+</head>
+
+<body class="main-home-bg d-flex flex-column min-vh-100">
+
+  <!-- ─────────────────────────────
+       Header / Navigation
+  ───────────────────────────── -->
+  <header class="main-header d-flex flex-wrap flex-md-nowrap justify-content-between align-items-center px-4 px-lg-5 py-3">
+    <div class="d-flex align-items-center gap-2">
+      <img src="/images/logo.png" alt="Logo" height="70">
+      <h3 class="mb-0 fw-bold">Eventra</h3>
+    </div>
+    <nav class="nav-links d-flex gap-3">
+      <a href="/"          class="nav-item">Home</a>
+      <a href="/organiser" class="nav-item">Organiser</a>
+      <a href="/attendee"  class="nav-item">Attendee</a>
+      <a href="#"          class="nav-item">About&nbsp;Us</a>
+      <a href="#"          class="nav-item">Contact</a>
+    </nav>
+  </header>
+
+  <!-- ─────────────────────────────
+       Event Summary
+  ───────────────────────────── -->
+  <section class="container text-center py-4">
+    <h1 class="display-5 fw-bold"><%= event.title %></h1>
+    <% if (event.description) { %>
+      <p class="lead text-white-50 mb-3"><%- event.description %></p>
+    <% } %>
+    <p class="small">
+      <strong>Organiser:</strong> <%= event.organiser_info || '—' %><br>
+      <strong>Location:</strong>  <%= event.location || '—' %><br>
+      <strong>Start:</strong>
+      <%= new Date(event.date).toLocaleString('en-GB', {
+           weekday: 'long', day: 'numeric', month: 'short', year: 'numeric',
+           hour: '2-digit', minute: '2-digit', hour12: true
+      }) %><br>
+      <% if (event.end_date) { %>
+        <strong>End:</strong>
+        <%= new Date(event.end_date).toLocaleString('en-GB', {
+             weekday: 'long', day: 'numeric', month: 'short', year: 'numeric',
+             hour: '2-digit', minute: '2-digit', hour12: true
+        }) %>
+      <% } %>
+    </p>
+  </section>
+
+  <!-- ─────────────────────────────
+       Booking Form
+  ───────────────────────────── -->
+  <form
+    id="bookForm"
+    method="POST"
+    action="/attendee/event/<%= event.id %>/book"
+    class="container flex-grow-1 mb-5"
+  >
+    <input type="hidden" name="payment_method" id="selectedMethod">
+
+    <!-- Form-level Error -->
+    <div id="formError" class="alert alert-danger py-2 text-center">
+      Please select at least one ticket.
+    </div>
+
+    <div class="row gy-4">
+      <!-- Ticket Selection & Guest Info -->
+      <div class="col-12 col-lg-7">
+        <!-- Ticket Types -->
+        <div class="section-box mb-4">
+          <legend>Select tickets (max <%= event.max_per_user %>)</legend>
+          <% function row(lbl, nm, pr, left, disabled) {
+               if (!left) return;
+          %>
+            <div class="ticket-row d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+              <div>
+                <span class="ticket-label fw-semibold text-white"><%= lbl %></span><br>
+                <span class="ticket-price">$<%= pr %></span>
+              </div>
+              <div
+                class="ticket-input-box d-flex align-items-center justify-content-end flex-nowrap gap-2"
+                style="min-width:160px;"
+              >
+                <input
+                  type="number"
+                  class="form-control form-control-sm text-center bg-light text-dark fw-semibold shadow-sm"
+                  style="width:80px"
+                  min="0"
+                  max="<%= left %>"
+                  value="0"
+                  data-price="<%= pr %>"
+                  name="<%= nm %>"
+                  <%= disabled ? 'disabled' : '' %>
+                >
+                <span class="text-white-50 small">(<%= left %> left)</span>
+              </div>
+            </div>
+          <% } %>
+
+          <% /* Standard + Concessions */ %>
+          <% row('Standard',        'full_price_tickets',  event.full_price_amount, event.full_price_count,  false); %>
+          <% row('Student',         'student_tickets',     event.student_price,      event.student_count,     false); %>
+          <% row('Senior',          'senior_tickets',      event.senior_price,       event.senior_count,      false); %>
+          <% row('Child',           'child_tickets',       event.child_price,        event.child_count,       false); %>
+
+          <% /* Early-bird Logic */ %>
+          <% const now      = new Date(); %>
+          <% const ebStart  = event.early_bird_start ? new Date(event.early_bird_start) : null; %>
+          <% const ebEnd    = event.early_bird_end   ? new Date(event.early_bird_end)   : null; %>
+          <% const ebOK     = ebStart && ebEnd && ebStart <= now && now < ebEnd; %>
+          <% if (event.early_bird_count > 0) {
+               row('Early-bird', 'early_bird_tickets', event.early_bird_price, event.early_bird_count, !ebOK);
+             }
+          %>
+
+          <% /* Custom Concessions */ %>
+          <% (customConcessions || []).forEach(c => {
+               row(c.name, 'custom_' + c.id + '_tickets', c.price, c.count, false);
+             });
+          %>
+        </div>
+
+        <!-- Guest Names & Phones -->
+        <div class="section-box mb-4">
+          <legend>Guest names & phones</legend>
+          <div id="guests" class="vstack gap-3"></div>
+        </div>
+
+        <!-- Payment Method & Details -->
+        <div class="section-box">
+          <legend>Select payment method</legend>
+
+          <!-- Payment Buttons -->
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <% ['PayNow','Bank Transfer','Card','Google Pay','Apple Pay']
+                 .filter(m => (event.payment_methods || '').includes(m))
+                 .forEach(m => { %>
+              <button type="button" class="pay-btn" data-method="<%= m %>"><%= m %></button>
+            <% }) %>
+          </div>
+
+          <!-- Contact & Payment Details (hidden until method chosen) -->
+          <div id="contactPaymentWrap">
+            <h6 class="fw-semibold mb-2">Contact information</h6>
+            <div class="vstack gap-3 mb-4">
+              <input
+                class="form-control form-control-sm shadow-sm"
+                name="contact_name"
+                placeholder="Full name"
+                pattern="[A-Za-z ]{2,50}"
+                maxlength="50"
+                required
+              >
+              <input
+                class="form-control form-control-sm shadow-sm"
+                name="contact_email"
+                placeholder="email@example.com"
+                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$"
+                oninput="this.value = this.value.toLowerCase()"
+                required
+              >
+              <input
+                class="form-control form-control-sm shadow-sm"
+                name="contact_phone"
+                placeholder="8-digit phone"
+                pattern="\d{8}"
+                maxlength="8"
+                required
+              >
+            </div>
+
+            <h6 class="fw-semibold mb-2">Payment details</h6>
+            <div id="paymentDetailsFields" class="vstack gap-3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary & Coupon -->
+      <div class="col-12 col-lg-5">
+        <div class="section-box" id="summaryBox">
+          <h6 class="fw-semibold mb-3">Order summary</h6>
+          <div id="ticketBreakdown" class="small"></div>
+          <hr class="border-light border-opacity-25">
+          <div id="finalTotal" class="fw-bold fs-5 text-end"></div>
+
+          <!-- Coupon Code -->
+          <div class="mt-4">
+            <div class="input-group">
+              <input
+                id="couponInput"
+                class="form-control text-uppercase shadow-sm"
+                name="promo_code"
+                maxlength="15"
+                placeholder="e.g., OFF10"
+                disabled
+              >
+              <button
+                id="applyCoupon"
+                type="button"
+                class="btn btn-outline-light shadow-sm"
+                disabled
+              >Apply</button>
+            </div>
+            <div id="couponInfo" class="small mt-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="text-center d-flex justify-content-center gap-3 mt-4">
+      <a href="/attendee" class="btn btn-outline-light btn-lg shadow-sm px-4">← Go Back</a>
+      <button type="submit" class="btn btn-gradient btn-lg shadow-sm px-5">Pay Now</button>
+    </div>
+  </form>
+
+  <!-- ─────────────────────────────
+       Footer
+  ───────────────────────────── -->
+  <footer class="main-footer text-center">
+    <small>&copy; 2025 Eventra. All rights reserved.</small>
+  </footer>
+
+  <!-- ─────────────────────────────
+       Client-Side Logic
+  ───────────────────────────── -->
+  <script>
+    window.onload = function () {
+      // Assign maxPerUser safely as a number, fallback to 1
+      const maxPerUser = Number('<%= event.max_per_user || 1 %>');
+
+      // Parse promoCodes and convert expiry to Date
+      const promoCodes = JSON.parse(`<%- JSON.stringify(promoCodes || []) %>`).map(p => {
+        if (p.expires_at) p.expires_at = new Date(p.expires_at);
+        return p;
+      });
+
+      const $            = q => document.querySelector(q);
+      const $$           = q => [...document.querySelectorAll(q)];
+      const ticketInputs = $$('input[type=number][name$=_tickets]');
+      const couponInput  = $('#couponInput');
+      const applyBtn     = $('#applyCoupon');
+      const payBtns      = $$('.pay-btn');
+      const formError    = $('#formError');
+      const guestsWrap   = $('#guests');
+      const contactWrap  = $('#contactPaymentWrap');
+      const payFieldsBox = $('#paymentDetailsFields');
+      const couponInfo   = $('#couponInfo');
+      const breakdownBox = $('#ticketBreakdown');
+      const totalBox     = $('#finalTotal');
+      const selMethod    = $('#selectedMethod');
+
+      let appliedPromo = null;
+
+      const resetCoupon = () => {
+        appliedPromo = null;
+        couponInput.value = '';
+        couponInfo.textContent = '';
+      };
+
+      const guestRowHTML = (i, n = '', p = '') => `
+        <div class="guest-card d-flex flex-column flex-md-row align-items-center gap-3 p-3"
+             style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:.75rem;">
+          <input class="form-control bg-light text-dark shadow-sm"
+                 name="guest_name[]" value="${n}"
+                 placeholder="Guest ${i} name"
+                 pattern="[A-Za-z ]{2,50}" maxlength="50" required>
+          <input class="form-control bg-light text-dark shadow-sm"
+                 name="guest_phone[]" value="${p}"
+                 placeholder="Phone"
+                 pattern="\\d{8}" maxlength="8" required>
+        </div>`;
+
+      function updateControls(count) {
+        const disabled = count === 0;
+        couponInput.disabled = applyBtn.disabled = disabled;
+        payBtns.forEach(b => b.disabled = disabled);
+        if (disabled) {
+          resetCoupon();
+          contactWrap.style.display = 'none';
+          payBtns.forEach(b => b.classList.remove('active'));
+          selMethod.value = '';
+        }
+      }
+
+      function refresh() {
+        let qty = 0, sum = 0;
+        ticketInputs.forEach(inp => {
+          const val = Math.min(+inp.value || 0, +inp.max);
+          inp.value = val;
+          qty += val;
+          sum += val * (+inp.dataset.price);
+        });
+        updateControls(qty);
+
+        // Rebuild guest inputs
+        const prevNames  = $$('input[name="guest_name[]"]').map(i => i.value);
+        const prevPhones = $$('input[name="guest_phone[]"]').map(i => i.value);
+        guestsWrap.innerHTML = '';
+        for (let i = 1; i <= qty; i++) {
+          guestsWrap.insertAdjacentHTML('beforeend', guestRowHTML(i, prevNames[i-1]||'', prevPhones[i-1]||''));
+        }
+
+        // Handle coupon
+        let discount = 0;
+        if (appliedPromo) {
+          const stdQty   = +$('input[name="full_price_tickets"]').value || 0;
+          const stdPrice = +$('input[name="full_price_tickets"]').dataset.price;
+          if (stdQty === 0) {
+            resetCoupon();
+          } else {
+            discount = appliedPromo.discount_type === 'fixed'
+              ? appliedPromo.discount_amount
+              : stdQty * stdPrice * (appliedPromo.discount_amount / 100);
+            couponInfo.textContent = `Coupon – $${discount.toFixed(2)} off`;
+          }
+        }
+
+        // Build breakdown
+        breakdownBox.innerHTML = '';
+        ticketInputs.forEach(inp => {
+          const cnt = +inp.value || 0;
+          if (!cnt) return;
+          const lbl = inp.closest('.ticket-row').querySelector('.ticket-label').textContent.trim();
+          const pr  = +inp.dataset.price;
+          breakdownBox.insertAdjacentHTML('beforeend', `
+            <div class="d-flex justify-content-between">
+              <span>${cnt} × ${lbl} @ $${pr.toFixed(2)}</span>
+              <span>$${(cnt*pr).toFixed(2)}</span>
+            </div>`);
+        });
+        if (discount) {
+          breakdownBox.insertAdjacentHTML('beforeend', `
+            <div class="d-flex justify-content-between">
+              <span>Coupon – ${appliedPromo.code}</span>
+              <span>- $${discount.toFixed(2)}</span>
+            </div>`);
+        }
+
+        totalBox.textContent = `Total: $${(sum - discount).toFixed(2)}`;
+        formError.style.display = 'none';
+      }
+
+      // Ticket input handlers
+      ticketInputs.forEach(inp => {
+        inp.addEventListener('input', e => {
+          const otherTotal = ticketInputs
+            .filter(x => x !== e.target)
+            .reduce((s, x) => s + (+x.value || 0), 0);
+          if (+e.target.value > maxPerUser - otherTotal) {
+            e.target.value = maxPerUser - otherTotal;
+          }
+          refresh();
+        });
+      });
+
+      // Coupon application
+      applyBtn.addEventListener('click', () => {
+        const code = couponInput.value.trim().toUpperCase();
+        const now = new Date();
+        const promo = promoCodes.find(p => {
+          if (p.code.toUpperCase() !== code) return false;
+          if (p.usage_limit != null && p.usage_limit <= 0) return false;
+          if (p.expires_at && p.expires_at <= now) return false;
+          return true;
+        });
+        if (!promo) {
+          resetCoupon();
+          couponInfo.textContent = 'Invalid or expired code';
+          return;
+        }
+        const stdQty = +$('input[name="full_price_tickets"]').value || 0;
+        if (stdQty === 0) {
+          resetCoupon();
+          couponInfo.textContent = 'Coupon applies only to Standard tickets.';
+        } else {
+          appliedPromo = promo;
+          refresh();
+        }
+      });
+
+      // Payment button handlers
+      payBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) {
+            alert('Select at least one ticket first.');
+            return;
+          }
+          payBtns.forEach(b => b.classList.toggle('active', b === btn));
+          selMethod.value = btn.dataset.method;
+          contactWrap.style.display = 'block';
+
+          const method = btn.dataset.method;
+          const txnId  = 'TXN' + Math.floor(100000000 + Math.random() * 900000000);
+          let fields  = '';
+
+          if (method !== 'PayNow') {
+            fields += `<input class="form-control form-control-sm shadow-sm" name="${method.toLowerCase()}_txn" value="${txnId}" readonly>`;
+          }
+
+          if (method === 'PayNow') {
+            fields = `
+              <input class="form-control form-control-sm shadow-sm" name="paynow_uen" value="201812345N" readonly>
+              <input class="form-control form-control-sm shadow-sm" name="paynow_phone" placeholder="Phone (8 digits)" pattern="\\d{8}" maxlength="8" required>
+            `;
+          } else if (method === 'Bank Transfer') {
+            fields += `
+              <select class="form-select form-select-sm shadow-sm" name="bank_name" required>
+                <option value="">-- Choose bank --</option>
+                <option>DBS</option><option>OCBC</option><option>UOB</option>
+                <option>Standard Chartered</option><option>HSBC</option>
+                <option>Maybank</option><option>CIMB</option><option>POSB</option>
+              </select>
+              <input class="form-control form-control-sm shadow-sm" name="bank_account" placeholder="Account number" pattern="\\d{7,14}" maxlength="14" required>
+              <input class="form-control form-control-sm shadow-sm" name="bank_phone" placeholder="Phone (8 digits)" pattern="\\d{8}" maxlength="8" required>
+            `;
+          } else if (method === 'Card') {
+            fields += `
+              <input class="form-control form-control-sm shadow-sm" name="card_number" placeholder="Card number" maxlength="19"
+                    oninput="this.value=this.value.replace(/\\D/g,'').replace(/(.{4})/g,'$1 ').trim().slice(0,19)" required>
+              <input class="form-control form-control-sm shadow-sm" name="card_expiry" placeholder="MM/YY" maxlength="5"
+                    pattern="^(0[1-9]|1[0-2])\\/(2[5-9]|3[0-5])$"
+                    title="MM = 01–12, YY = 25–35"
+                    oninput="this.value=this.value.replace(/[^\\d]/g,''); if(this.value.length>2)this.value=this.value.slice(0,2)+'/'+this.value.slice(2,4);" required>
+              <input class="form-control form-control-sm shadow-sm" name="card_cvv" placeholder="CVV" maxlength="3" required>
+            `;
+          } else if (method === 'Google Pay') {
+            fields += `<input class="form-control form-control-sm shadow-sm" name="gpay_id" placeholder="gpay-123456" pattern="gpay-\\d{6}" maxlength="11" required>`;
+          } else if (method === 'Apple Pay') {
+            fields += `<input class="form-control form-control-sm shadow-sm" name="apple_id" placeholder="apple-654321" pattern="apple-\\d{6}" maxlength="12" required>`;
+          }
+
+          payFieldsBox.innerHTML = fields;
+        });
+      });
+
+      // Form submission validation
+      $('#bookForm').addEventListener('submit', e => {
+        const total = ticketInputs.reduce((s, i) => s + (+i.value || 0), 0);
+        if (total === 0) {
+          e.preventDefault();
+          formError.style.display = 'block';
+        }
+      });
+
+      // Initial load
+      refresh();
+    };
+  </script>
+</body>
+</html>

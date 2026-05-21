@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ─────────────── Meta & Title ─────────────── -->
+  <meta charset="utf-8">
+  <title>Attendee Home Page</title>
+
+  <!-- ─────────────── Stylesheets ──────────────── -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/attendee-home.css">
+</head>
+
+<body class="main-home-bg text-white d-flex flex-column min-vh-100">
+
+  <!-- ─────────────────────────────
+       Header / Navigation
+  ───────────────────────────── -->
+  <header class="main-header d-flex justify-content-between align-items-center px-5 py-3 fade-in">
+    <div class="logo d-flex align-items-center">
+      <img src="/images/logo.png" alt="Logo" height="70" class="me-2">
+      <h3 class="mb-0">Eventra</h3>
+    </div>
+    <nav class="nav-links d-flex gap-4">
+      <a href="/"          class="nav-item">Home</a>
+      <a href="/organiser" class="nav-item">Organiser</a>
+      <a href="/attendee"  class="nav-item">Attendee</a>
+      <a href="#"          class="nav-item">About Us</a>
+      <a href="#"          class="nav-item">Contact</a>
+    </nav>
+  </header>
+
+  <!-- ─────────────────────────────
+       Page Header / Hero
+  ───────────────────────────── -->
+  <section class="page-header text-center py-5 fade-in">
+    <h1 class="display-4 fw-bold">Attendee Home Page</h1>
+    <h2 class="mb-4"><%= siteName %></h2>
+    <p class="lead"><%- siteDescription %></p>
+  </section>
+
+  <!-- ─────────────────────────────
+       Main Content: Event Listings
+  ───────────────────────────── -->
+  <main class="container py-4 flex-grow-1">
+    <% if (publishedEvents.length === 0) { %>
+      <p class="text-center">No upcoming events available right now.</p>
+    <% } else { %>
+      <div class="row g-4">
+        <% publishedEvents.forEach((event, idx) => {
+             const left       = event.left;
+             const now        = new Date();
+             const ebStart    = event.early_bird_start && new Date(event.early_bird_start);
+             const ebEnd      = event.early_bird_end   && new Date(event.early_bird_end);
+             const ebNotStart = ebStart && ebStart > now;
+             const ebActive   = ebEnd && ebEnd > now && !ebNotStart;
+
+             let bookable = (left.standard   || 0)
+                          + (left.student    || 0)
+                          + (left.senior     || 0)
+                          + (left.child      || 0);
+             Object.keys(left)
+                   .filter(k => k.startsWith('custom_'))
+                   .forEach(k => bookable += left[k]);
+             if (ebActive) bookable += (left.earlyBird || 0);
+
+             const soldOut    = bookable === 0;
+             const almostGone = !soldOut && bookable < 10;
+             const methods    = (event.payment_methods || '')
+                                .split(',')
+                                .map(m => m.trim())
+                                .filter(Boolean);
+        %>
+        <div class="col-lg-4 col-md-6">
+          <div
+            class="card event-box fade-in-up shadow-lg position-relative h-100 p-4"
+            style="transition-delay:0.3s;"
+          >
+
+            <!-- Title & Status -->
+            <div class="d-flex justify-content-between align-items-center mb-3 title-row">
+              <h3 class="m-0 text-white"><%= event.title %></h3>
+              <div>
+                <% if (event.category) { %>
+                  <span class="badge bg-secondary"><%= event.category %></span>
+                <% } %>
+                <% if (soldOut) { %>
+                  <span class="badge bg-danger ms-2">🚫 Sold Out</span>
+                <% } else if (almostGone) { %>
+                  <span class="badge bg-warning text-dark ms-2">⚠️ Few Left</span>
+                <% } else { %>
+                  <span class="badge bg-success ms-2">✅ Available</span>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Short Description -->
+            <% if (event.description) { %>
+              <p class="text-white-75 mb-3">
+                <strong>About:</strong> <%= event.description.slice(0, 150) %>…
+              </p>
+            <% } %>
+
+            <!-- Date & Time -->
+            <div class="meta-group mb-3">
+              <i class="bi bi-clock"></i>
+              <div>
+                <strong>Start:</strong>
+                <%= new Date(event.date).toLocaleString('en-GB', {
+                     weekday: 'short',
+                     day:     'numeric',
+                     month:   'short',
+                     year:    'numeric',
+                     hour:    '2-digit',
+                     minute:  '2-digit',
+                     hour12:  true
+                }) %>
+              </div>
+              <% if (event.end_date) { %>
+                <i class="bi bi-stopwatch"></i>
+                <div>
+                  <strong>End:</strong>
+                  <%= new Date(event.end_date).toLocaleString('en-GB', {
+                       weekday: 'short',
+                       day:     'numeric',
+                       month:   'short',
+                       year:    'numeric',
+                       hour:    '2-digit',
+                       minute:  '2-digit',
+                       hour12:  true
+                  }) %>
+                </div>
+              <% } %>
+            </div>
+
+            <!-- Location & Organiser -->
+            <div class="meta-group mb-3">
+              <i class="bi bi-geo-alt"></i>
+              <div><strong>Location:</strong> <%= event.location || '—' %></div>
+              <i class="bi bi-person"></i>
+              <div><strong>Organiser:</strong> <%= event.organiser_info || '—' %></div>
+            </div>
+
+            <!-- Ticket Availability -->
+            <ul class="ticket-list mb-3 text-white-75">
+              <% if (left.standard > 0) { %>
+                <li>🎫 <strong>Standard:</strong> $<%= event.full_price_amount %> (<%= left.standard %> left)</li>
+              <% } %>
+              <% if (left.student > 0) { %>
+                <li>👩‍🎓 <strong>Student:</strong> $<%= event.student_price %> (<%= left.student %> left)</li>
+              <% } %>
+              <% if (left.senior > 0) { %>
+                <li>👴 <strong>Senior:</strong> $<%= event.senior_price %> (<%= left.senior %> left)</li>
+              <% } %>
+              <% if (left.child > 0) { %>
+                <li>🧒 <strong>Child:</strong> $<%= event.child_price %> (<%= left.child %> left)</li>
+              <% } %>
+              <% (event.customConcessions || []).forEach(c => {
+                   const cnt = left['custom_' + c.id] || 0;
+                   if (cnt > 0) { %>
+                <li>🎟️ <strong><%= c.name %>:</strong> $<%= c.price %> (<%= cnt %> left)</li>
+              <% }}); %>
+            </ul>
+
+            <!-- Accepted Payment Methods -->
+            <% if (methods.length) { %>
+              <div class="payments mb-3">
+                <i class="bi bi-credit-card"></i>
+                <span><strong>Payments:</strong> <%= methods.join(', ') %></span>
+              </div>
+            <% } %>
+
+            <!-- Early-bird Notices -->
+            <% if (left.earlyBird !== undefined) { %>
+              <% if (ebNotStart) { %>
+                <div class="alert alert-info mb-3">
+                  ⏰ Early-bird opens on
+                  <%= ebStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                </div>
+              <% } else if (ebActive && left.earlyBird > 0) { %>
+                <div class="alert alert-warning mb-3" data-eb-end="<%= event.early_bird_end %>">
+                  🚨 Few Early-bird left! (<span class="eb-countdown">--</span>)
+                </div>
+              <% } else if (ebActive && left.earlyBird === 0) { %>
+                <div class="alert alert-danger mb-3">🛑 Early-bird sold out</div>
+              <% } else { %>
+                <div class="alert alert-secondary mb-3">🔒 Early-bird closed</div>
+              <% } %>
+            <% } %>
+
+            <!-- Countdown to Event Start -->
+            <% if (new Date(event.date) > now) { %>
+              <div class="alert alert-countdown mb-3" data-start="<%= event.date %>">
+                🎉 Event starts in <span class="countdown-timer">loading...</span>
+              </div>
+            <% } %>
+
+            <!-- Book Now Button -->
+            <% if (!soldOut) { %>
+              <div class="buy-btn mt-auto">
+                <a href="/attendee/event/<%= event.id %>" class="btn btn-gradient">
+                  Select Tickets
+                </a>
+              </div>
+            <% } %>
+
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </main>
+
+  <!-- ─────────────────────────────
+       Footer
+  ───────────────────────────── -->
+  <footer class="footer text-center fade-in py-2">
+    <small>&copy; 2025 Eventra. All rights reserved.</small>
+  </footer>
+
+  <!-- ─────────────────────────────
+       Scripts
+  ───────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      /* Fade-in observer */
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.fade-in, .fade-in-up').forEach(el => observer.observe(el));
+
+      /* Early-bird countdown */
+      document.querySelectorAll('[data-eb-end]').forEach(div => {
+        const end = new Date(div.dataset.ebEnd);
+        const out = div.querySelector('.eb-countdown');
+        const tick = () => {
+          const diff = end - new Date();
+          if (diff <= 0) { out.textContent = 'Closed'; return; }
+          const d = Math.floor(diff / 864e5),
+                h = Math.floor(diff / 36e5) % 24,
+                m = Math.floor(diff / 6e4) % 60;
+          out.textContent = `${d}d ${h}h ${m}m`;
+        };
+        tick();
+        setInterval(tick, 60000);
+      });
+
+      /* Event start countdown */
+      document.querySelectorAll('[data-start]').forEach(div => {
+        const start = new Date(div.dataset.start);
+        const out = div.querySelector('.countdown-timer');
+        const tick = () => {
+          const diff = start - new Date();
+          if (diff <= 0) { out.textContent = 'now!'; return; }
+          const d = Math.floor(diff / 864e5),
+                h = Math.floor(diff / 36e5) % 24,
+                m = Math.floor(diff / 6e4) % 60;
+          out.textContent = `${d}d ${h}h ${m}m`;
+        };
+        tick();
+        setInterval(tick, 60000);
+      });
+    });
+  </script>
+</body>
+</html>

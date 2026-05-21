@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ─────────────── Meta & Title ─────────────── -->
+  <meta charset="utf-8">
+  <title>Booking Confirmation – <%= booking.title %></title>
+
+  <!-- ─────────────── Stylesheets ──────────────── -->
+  <link rel="stylesheet" href="/booking-confirmation.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- ─────────────── QR-Code Library ──────────── -->
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
+</head>
+
+<body class="main-home-bg text-white d-flex flex-column min-vh-100">
+
+  <!-- ─────────────────────────────
+       Header / Navbar
+  ───────────────────────────── -->
+  <header class="main-header d-flex justify-content-between align-items-center px-5 py-3 fade-in-up">
+    <div class="d-flex align-items-center">
+      <img src="/images/logo.png" height="70" class="me-2" alt="logo">
+      <h3 class="mb-0">Eventra</h3>
+    </div>
+    <nav class="nav-links d-flex gap-4">
+      <a href="/"          class="nav-item">Home</a>
+      <a href="/organiser" class="nav-item">Organiser</a>
+      <a href="/attendee"  class="nav-item">Attendee</a>
+      <a href="#"          class="nav-item">About&nbsp;Us</a>
+      <a href="#"          class="nav-item">Contact</a>
+    </nav>
+  </header>
+
+  <% /* ───────── Internal Calculations (EJS) ───────── */ 
+     let calcTotal = 0;
+     const stdQty   = booking.full_price_tickets;
+     const stdPrice = +booking.full_price_amount;
+     let perStdDisc = 0;
+
+     if (booking.promo_code && booking.discount_type === 'fixed'){
+       perStdDisc = Math.min(booking.discount_amount, stdQty * stdPrice) / stdQty;
+     } else if (booking.promo_code && booking.discount_type === 'percent'){
+       perStdDisc = stdPrice * (booking.discount_amount / 100);
+     }
+     if (stdQty) calcTotal += stdQty * (stdPrice - perStdDisc);
+
+     const typeKeys = ['student', 'senior', 'child', 'early_bird'];
+     const labelOf  = k => k === 'early_bird' ? 'Early-bird'
+                       : k.charAt(0).toUpperCase() + k.slice(1);
+     const priceOf  = k => +booking[
+       k === 'student' ? 'student_price' :
+       k === 'senior'  ? 'senior_price'  :
+       k === 'child'   ? 'child_price'   : 'early_bird_price'
+     ];
+
+     typeKeys.forEach(k => {
+       const q = booking.concession_detail[k] || 0;
+       if (q) calcTotal += q * priceOf(k);
+     });
+
+     customConcessions.forEach(cc => {
+       const cnt = booking.concession_detail[`custom_${cc.id}`] || 0;
+       if (cnt) calcTotal += cnt * cc.price;
+     });
+
+     const dt      = new Date(booking.date);
+     const dayNum  = dt.getDate();
+     const month   = dt.toLocaleString('en-GB', { month: 'long' });
+     const dtShort = dt.toLocaleString('en-GB', {
+       day: '2-digit', month: '2-digit', year: 'numeric',
+       hour: '2-digit', minute: '2-digit', hour12: true });
+  %>
+
+  <!-- ─────────────────────────────
+       Main Content
+  ───────────────────────────── -->
+  <main class="container my-5 flex-grow-1">
+    <div class="row g-5 align-items-start">
+
+      <!-- Left Column: Details -->
+      <div class="col-lg-7 fade-in-up">
+        <h1>Booking Confirmation !!</h1>
+        <p class="text-success mb-4"><%= booking.contact_name %>, your booking has been confirmed!</p>
+
+        <!-- Booking Details -->
+        <div class="mb-4">
+          <div class="section-title">Booking Details</div>
+          <ul class="list-unstyled mb-0">
+            <% if (stdQty) { %>
+              <li><%= stdQty %> × Standard @ $<%= stdPrice.toFixed(2) %>
+                <% if (perStdDisc) { %>– $<%= perStdDisc.toFixed(2) %><% } %> =
+                $<%= (stdQty * (stdPrice - perStdDisc)).toFixed(2) %></li>
+            <% } %>
+
+            <% typeKeys.forEach(k => {
+                 const q = booking.concession_detail[k] || 0;
+                 if (q) { const p = priceOf(k); %>
+              <li><%= q %> × <%= labelOf(k) %> @ $<%= p.toFixed(2) %> = $<%= (q * p).toFixed(2) %></li>
+            <% }}); %>
+
+            <% customConcessions.forEach(cc => {
+                 const cnt = booking.concession_detail[`custom_${cc.id}`] || 0;
+                 if (cnt) { %>
+              <li><%= cnt %> × <%= cc.name %> @ $<%= cc.price.toFixed(2) %> =
+                  $<%= (cnt * cc.price).toFixed(2) %></li>
+            <% }}); %>
+          </ul>
+
+          <% if (booking.promo_code) { %>
+            <p class="mt-2 mb-1">
+              <strong>Coupon Applied:</strong> <%= booking.promo_code.toUpperCase() %>
+              <% if (booking.discount_type === 'fixed') { %>
+                – $<%= booking.discount_amount.toFixed(2) %> off
+              <% } else { %>
+                – <%= booking.discount_amount %>% off
+              <% } %>
+            </p>
+          <% } %>
+
+          <hr class="sub-sep">
+          <p class="fw-bold mb-3">Total Paid: $<%= calcTotal.toFixed(2) %></p>
+          <p class="mb-0">Payment Method: <%= booking.payment_method %></p>
+        </div>
+        <hr class="border-sep">
+
+        <!-- Event Details -->
+        <div class="mb-4">
+          <div class="section-title">Event Details</div>
+          <p><span class="detail-label">Name:</span> <%= booking.title %></p>
+          <p><span class="detail-label">Location:</span> <%= booking.location %></p>
+          <p><span class="detail-label">Date &amp; Time:</span>
+             <%= dt.toLocaleString('en-GB',{
+                  weekday:'long', day:'2-digit', month:'short',
+                  year:'numeric', hour:'2-digit', minute:'2-digit', hour12:true }) %></p>
+        </div>
+        <hr class="border-sep">
+
+        <!-- Ticket Holder -->
+        <div class="mb-4">
+          <div class="section-title">Ticket Holder</div>
+          <p><span class="detail-label">Name:</span> <%= booking.contact_name %></p>
+          <p><span class="detail-label">Email:</span> <%= booking.contact_email %></p>
+          <p><span class="detail-label">Mobile:</span> <%= booking.contact_phone %></p>
+        </div>
+        <hr class="border-sep">
+
+        <!-- Guest List -->
+        <% if (booking.guest_names.length) { %>
+          <div class="mb-4">
+            <div class="section-title">Guest Details</div>
+            <ol class="guest-list">
+              <% booking.guest_names.forEach((n,i) => { %>
+                <li><%= n %> – <%= booking.guest_phones[i] %></li>
+              <% }) %>
+            </ol>
+          </div>
+          <hr class="border-sep">
+        <% } %>
+
+        <p class="mt-4">
+          A confirmation email and SMS have been sent to
+          <strong><%= booking.contact_email %></strong> and
+          <strong><%= booking.contact_phone %></strong>.
+        </p>
+      </div>
+
+      <!-- Right Column: Printable Card -->
+      <div class="col-lg-5 d-flex justify-content-center">
+        <div class="print-card text-center fade-in-up">
+          <h2 class="text-white"><%= dayNum %></h2>
+          <div class="month text-white"><%= month %></div>
+          <div class="datetime text-white"><%= dtShort %></div>
+
+          <div class="fw-semibold mt-3 text-white">#Booking ID</div>
+          <div class="h5 text-white"><%= booking.id %></div>
+
+          <div id="qrcode" class="my-3"></div>
+
+          <button onclick="window.print()" class="btn-gradient w-100">Print Booking</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-5">
+      <a href="/attendee" class="btn-gradient">Back to Events</a>
+    </div>
+  </main>
+
+  <!-- ─────────────────────────────
+       Footer
+  ───────────────────────────── -->
+  <footer class="main-footer text-center py-3 fade-in-up">
+    <small>&copy; 2025 Eventra. All rights reserved.</small>
+  </footer>
+
+  <!-- ─────────────────────────────
+       Scripts
+  ───────────────────────────── -->
+  <script>
+    /* QR Code generation */
+    new QRCode(document.getElementById('qrcode'), 'Booking:<%= booking.id %>');
+
+    /* Fade-in intersection observer */
+    document.addEventListener('DOMContentLoaded', () => {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting){
+            e.target.classList.add('visible');
+            obs.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      document.querySelectorAll('.fade-in-up').forEach(el => obs.observe(el));
+    });
+  </script>
+</body>
+</html>

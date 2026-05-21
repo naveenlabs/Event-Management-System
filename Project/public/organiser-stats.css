@@ -1,0 +1,120 @@
+/* ─────────────────────────────
+ *  Global Background & Layout
+ * ───────────────────────────── */
+.main-home-bg {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+/* ─────────────────────────────
+ *  Header & Navigation
+ * ───────────────────────────── */
+.main-header {
+  height: 80px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo h3 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.nav-links a {
+  color: #fff;
+  margin-left: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.nav-links a:hover {
+  background: linear-gradient(to right, #fc466b, #3f5efb);
+  color: transparent;
+  background-clip: text;
+}
+
+/* ─────────────────────────────
+ *  Stats Card Container
+ * ───────────────────────────── */
+.stats-card {
+  background: linear-gradient(135deg, rgba(15, 12, 41, 0.85), rgba(48, 43, 99, 0.85));
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  overflow-x: auto;
+}
+
+/* ─────────────────────────────
+ *  Stats Table Styling
+ * ───────────────────────────── */
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+}
+
+.stats-table th,
+.stats-table td {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.stats-table th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+.stats-table td {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* ─────────────────────────────
+ *  Bookings Table Sticky Header
+ * ───────────────────────────── */
+.bookings-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 2;
+}
+
+/* ─────────────────────────────
+ *  Guest List Chips
+ * ───────────────────────────── */
+.guest-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  margin-top: .25rem;
+}
+
+.guest-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  white-space: nowrap;
+  color: #b9c2ff;
+  font-weight: 500;
+  font-size: .92rem;
+}
+
+/* ─────────────────────────────
+ *  Footer
+ * ───────────────────────────── */
+.main-footer {
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}

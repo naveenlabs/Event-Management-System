@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- ─────────────── Meta & Title ─────────────── -->
+  <meta charset="UTF-8" />
+  <title><%= event.id ? `Edit Event – ${event.title}` : 'Create New Event' %></title>
+
+  <!-- ─────────────── External Styles ──────────────── -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- ─────────────── Custom Stylesheet ──────────────── -->
+  <link rel="stylesheet" href="/organiser-edit-event.css">
+</head>
+
+<body class="main-home-bg d-flex flex-column min-vh-100">
+
+  <!-- ─────────────────────────────
+       Header / Navigation
+  ───────────────────────────── -->
+  <header class="main-header d-flex justify-content-between align-items-center px-5 py-3">
+    <div class="logo d-flex align-items-center">
+      <img src="/images/logo.png" alt="Logo" height="70" class="me-2">
+      <h3 class="mb-0">Eventra</h3>
+    </div>
+    <nav class="nav-links d-flex gap-4">
+      <a href="/" class="nav-item">Home</a>
+      <a href="/organiser" class="nav-item">Organiser</a>
+      <a href="/attendee" class="nav-item">Attendee</a>
+      <a href="#" class="nav-item">About&nbsp;Us</a>
+      <a href="#" class="nav-item">Contact</a>
+    </nav>
+  </header>
+
+  <!-- ─────────────────────────────
+       Main Content Area
+  ───────────────────────────── -->
+  <main class="container py-5 flex-grow-1">
+    <div class="mega-card">
+      <h1 class="text-center fw-bold mb-4">
+        <%= event.id ? `Edit Event: ${event.title || '[Untitled]'}` : 'Create New Event' %>
+      </h1>
+
+      <!-- ─────────────── Meta Info (Edit Mode Only) ─────────────── -->
+      <% if (event.id) { %>
+      <% 
+          function formatDate(ts) {
+            let iso = ts.includes(' ') ? ts.replace(' ', 'T') + 'Z' : ts;
+            const d = new Date(iso);
+            return d.toLocaleString('en-GB', {
+              timeZone: 'Asia/Singapore',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        %>
+
+      <div class="event-meta text-center mt-3">
+        <p><strong>Event ID:</strong> <%= event.id %></p>
+        <p><strong>Created At:</strong> <%= formatDate(event.created_at) %></p>
+        <p><strong>Last Modified:</strong> <%= formatDate(event.updated_at) %></p>
+        <p><strong>Status:</strong> <%= event.status %></p>
+      </div>
+      <% } %>
+
+      <!-- ─────────────── Error Message (if any) ─────────────── -->
+      <% if (error) { %>
+      <div class="error text-center"><%= error %></div>
+      <% } %>
+
+      <%
+        const s = submitted || {};
+        let payRaw = s.payment_methods || event.payment_methods || '';
+        if (Array.isArray(payRaw)) payRaw = payRaw.join(',');
+        const selectedPay = payRaw.split(',').map(m => m.trim()).filter(Boolean);
+
+        const evStart = new Date(event.date);
+        const ebMinDT = new Date(evStart.getTime() - 30*24*60*60*1000);
+        const pad=n=>String(n).padStart(2,'0');
+        const toLocal=d=>{
+          const dt=new Date(d);
+          return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+        };
+        const ebMin=toLocal(ebMinDT), ebMax=toLocal(evStart);
+      %>
+
+      <!-- ─────────────────────────────
+        Event Form Container
+    ───────────────────────────── -->
+      <form id="editForm" method="POST" action="<%= event.id ? '/organiser/edit/'+event.id : '/organiser/new' %>">
+
+        <!-- ─────────────────────────────
+      Basic Information Section
+  ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Basic Information</h5>
+          <!-- Title with live character count -->
+          <label for="title">
+            Event Title:
+            <span id="titleCount" class="char-count">0 / 20</span>
+          </label>
+          <input id="title" name="title" class="form-control shadow-sm" maxlength="20"
+            value="<%= s.title || event.title || '' %>" required placeholder="e.g. Tech Expo 2025">
+          <!-- Description with live character count -->
+          <label for="description" class="mt-3">
+            Description:
+            <span id="descCount" class="char-count">0 / 300</span>
+          </label>
+          <textarea id="description" name="description" rows="4" maxlength="300" class="form-control shadow-sm" required
+            placeholder="e.g. An international expo showcasing the latest in consumer tech."><%= (s.description || event.description || '').trim() %></textarea>
+        </div>
+
+        <!-- ─────────────────────────────
+            Schedule Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Schedule</h5>
+          <div class="row g-3">
+            <!-- Start date/time picker -->
+            <div class="col-md-6">
+              <label for="date">Start Date & Time:</label>
+              <input type="datetime-local" id="date" name="date" class="form-control shadow-sm"
+                value="<%= toLocal(s.date || event.date) %>" min="<%= minDate %>" step="900" required>
+            </div>
+            <!-- End date/time picker -->
+            <div class="col-md-6">
+              <label for="end_date">End Date & Time:</label>
+              <input type="datetime-local" id="end_date" name="end_date" class="form-control shadow-sm"
+                value="<%= toLocal(s.end_date || event.end_date || '') %>" min="<%= minDate %>" step="900" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─────────────────────────────
+            Venue & Organiser Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Venue & Organiser</h5>
+          <!-- Location input with validation -->
+          <label for="location">Location / Venue:</label>
+          <input id="location" name="location" class="form-control shadow-sm"
+            value="<%= s.location || event.location || '' %>" pattern="^(?=.*[A-Za-z])[A-Za-z0-9\s,]+$"
+            title="Must include a letter; numbers allowed" required placeholder="e.g. Suntec City, Hall 401">
+
+          <!-- Organiser info input with validation -->
+          <label for="organiser_info" class="mt-3">Organiser Info:</label>
+          <input id="organiser_info" name="organiser_info" class="form-control shadow-sm"
+            value="<%= s.organiser_info || event.organiser_info || '' %>" pattern="^[A-Za-z\s]+$"
+            title="Letters & spaces only" required placeholder="e.g. John Tan from AI Group">
+        </div>
+
+        <!-- ─────────────────────────────
+            Category & Capacity Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Category & Capacity</h5>
+          <div class="row g-3">
+            <!-- Category/tags input -->
+            <div class="col-md-8">
+              <label for="category">Category / Tags:</label>
+              <input id="category" name="category" class="form-control shadow-sm"
+                value="<%= s.category || event.category || '' %>" pattern="^[A-Za-z,\s]+$"
+                title="Letters, commas & spaces only" required placeholder="e.g. Technology, Robotics, AI">
+            </div>
+            <!-- Capacity input -->
+            <div class="col-md-4">
+              <label for="capacity">Attendee Capacity:</label>
+              <input type="number" id="capacity" name="capacity" class="form-control shadow-sm"
+                value="<%= s.capacity || event.capacity || 0 %>" min="1" max="50000" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─────────────────────────────
+            Built-in Ticket Types Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Built-in Ticket Types</h5>
+          <div class="row g-3">
+            <!-- Full price tickets -->
+            <div class="col-md-6">
+              <label>Full-price Count</label>
+              <input id="full_price_count" type="number" name="full_price_count" class="form-control shadow-sm"
+                value="<%= s.full_price_count || event.full_price_count || 0 %>" min="0" step="1" required>
+            </div>
+            <div class="col-md-6">
+              <label>Full-price Amount ($)</label>
+              <input type="number" name="full_price_amount" class="form-control shadow-sm"
+                value="<%= s.full_price_amount || event.full_price_amount || 0 %>" min="0" max="20000" step="1"
+                required>
+            </div>
+
+            <!-- Student tickets -->
+            <div class="col-md-6">
+              <label>Student Count</label>
+              <input id="student_count" type="number" name="student_count" class="form-control shadow-sm"
+                value="<%= s.student_count || event.student_count || 0 %>" min="0" step="1" required>
+            </div>
+            <div class="col-md-6">
+              <label>Student Amount ($)</label>
+              <input type="number" name="student_price" class="form-control shadow-sm"
+                value="<%= s.student_price || event.student_price || 0 %>" min="0" max="20000" step="1" required>
+            </div>
+
+            <!-- Senior tickets -->
+            <div class="col-md-6">
+              <label>Senior Count</label>
+              <input id="senior_count" type="number" name="senior_count" class="form-control shadow-sm"
+                value="<%= s.senior_count || event.senior_count || 0 %>" min="0" step="1" required>
+            </div>
+            <div class="col-md-6">
+              <label>Senior Amount ($)</label>
+              <input type="number" name="senior_price" class="form-control shadow-sm"
+                value="<%= s.senior_price || event.senior_price || 0 %>" min="0" max="20000" step="1" required>
+            </div>
+
+            <!-- Child tickets -->
+            <div class="col-md-6">
+              <label>Child Count</label>
+              <input id="child_count" type="number" name="child_count" class="form-control shadow-sm"
+                value="<%= s.child_count || event.child_count || 0 %>" min="0" step="1" required>
+            </div>
+            <div class="col-md-6">
+              <label>Child Amount ($)</label>
+              <input type="number" name="child_price" class="form-control shadow-sm"
+                value="<%= s.child_price || event.child_price || 0 %>" min="0" max="20000" step="1" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─────────────────────────────
+            Early-bird Tickets Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Early-bird Tickets</h5>
+          <fieldset>
+            <legend>Window & Pricing</legend>
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label>Count:</label>
+                <input id="eb_count" type="number" name="early_bird_count" class="form-control shadow-sm"
+                  value="<%= s.early_bird_count || event.early_bird_count || 0 %>" min="0" step="1">
+              </div>
+              <div class="col-md-3">
+                <label>Price:</label>
+                <input id="eb_price" type="number" name="early_bird_price" class="form-control shadow-sm"
+                  value="<%= s.early_bird_price || event.early_bird_price || 0 %>" min="0" max="20000" step="1">
+              </div>
+              <div class="col-md-3">
+                <label>Start Date:</label>
+                <input id="eb_start" type="date" name="early_bird_start" class="form-control shadow-sm"
+                  value="<%= (s.early_bird_start||event.early_bird_start||'').split('T')[0] %>"
+                  min="<%= ebMin.split('T')[0] %>" max="<%= ebMax.split('T')[0] %>">
+              </div>
+              <div class="col-md-3">
+                <label>End Date:</label>
+                <input id="eb_end" type="date" name="early_bird_end" class="form-control shadow-sm"
+                  value="<%= (s.early_bird_end||event.early_bird_end||'').split('T')[0] %>"
+                  min="<%= ebMin.split('T')[0] %>" max="<%= ebMax.split('T')[0] %>">
+              </div>
+            </div>
+          </fieldset>
+        </div>
+
+        <!-- ─────────────────────────────
+            Rules & Limits Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Rules & Limits</h5>
+          <label for="rules">
+            Rules / Notes:
+            <span id="rulesCount" class="char-count">0 / 300</span>
+          </label>
+          <textarea id="rules" name="rules" rows="3" maxlength="300" class="form-control shadow-sm" required
+            placeholder="e.g. No outside food or beverages allowed."><%= s.rules || event.rules || '' %></textarea>
+
+          <label for="max_per_user" class="mt-3">Max Tickets per User:</label>
+          <select id="max_per_user" name="max_per_user" class="form-select shadow-sm" required>
+            <% for (let i = 1; i <= 10; i++) { %>
+            <option value="<%= i %>"
+              <%= (+s.max_per_user === i || (!s.max_per_user && event.max_per_user === i)) ? 'selected' : '' %>>
+              <%= i %>
+            </option>
+            <% } %>
+          </select>
+        </div>
+
+        <!-- ─────────────────────────────
+            Custom Concessions Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Custom Concession Types</h5>
+          <div id="custom-concession-list">
+            <% customConcessions.forEach((cc, idx) => { %>
+            <div class="custom-concession-row">
+              <label>Name:
+                <input name="custom_concessions[<%= idx %>][name]" class="form-control shadow-sm mt-1"
+                  value="<%= cc.name %>" pattern="^[A-Za-z\\s]+$" required>
+              </label>
+              <label class="d-block mt-2">Count:
+                <input type="number" name="custom_concessions[<%= idx %>][count]" class="form-control shadow-sm"
+                  value="<%= cc.count %>" min="0" step="1" required>
+              </label>
+              <label class="d-block mt-2">Price:
+                <input type="number" name="custom_concessions[<%= idx %>][price]" class="form-control shadow-sm"
+                  value="<%= cc.price %>" min="0" step="0.01" required>
+              </label>
+              <button type="button" class="btn-gradient btn-sm d-inline-flex align-items-center gap-1 mt-3"
+                onclick="removeCustomConcession(this)">
+                <i class="bi bi-x-circle"></i> Remove
+              </button>
+            </div>
+            <% }) %>
+          </div>
+          <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="addCustomConcession()">
+            + Add Concession
+          </button>
+        </div>
+
+
+        <!-- ─────────────────────────────
+            Promo Codes Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Promo Codes</h5>
+          <div id="promo-code-list">
+            <% promoCodes.forEach((pc, idx) => { %>
+            <div class="promo-code-row">
+              <label>Code:
+                <input name="promo_codes[<%= idx %>][code]" class="form-control shadow-sm mt-1" value="<%= pc.code %>"
+                  maxlength="15" pattern="^[A-Za-z]+[0-9]+$"
+                  title="Promo code must start with letters, followed by numbers, no spaces"
+                  oninput="this.value = this.value.toUpperCase()" required>
+              </label>
+              <label class="d-block mt-2">Type:
+                <select name="promo_codes[<%= idx %>][type]" class="form-select shadow-sm">
+                  <option value="fixed" <%= pc.discount_type==='fixed'   ? 'selected' : '' %>>Fixed</option>
+                  <option value="percent" <%= pc.discount_type==='percent' ? 'selected' : '' %>>Percent</option>
+                </select>
+              </label>
+              <label class="d-block mt-2">Amount:
+                <input type="number" name="promo_codes[<%= idx %>][amount]" class="form-control shadow-sm"
+                  value="<%= pc.discount_amount %>" step="0.01" required>
+              </label>
+              <label class="d-block mt-2">Limit:
+                <input type="number" name="promo_codes[<%= idx %>][limit]" class="form-control shadow-sm"
+                  value="<%= pc.usage_limit %>">
+              </label>
+              <label class="d-block mt-2">Expiry:
+                <input type="date" name="promo_codes[<%= idx %>][expires]" class="form-control shadow-sm"
+                  value="<%= pc.expires_at ? pc.expires_at.split('T')[0] : '' %>">
+              </label>
+              <button type="button" class="btn-gradient btn-sm d-inline-flex align-items-center gap-1 mt-3"
+                onclick="removePromoCode(this)">
+                <i class="bi bi-x-circle"></i> Remove
+              </button>
+            </div>
+            <% }) %>
+          </div>
+          <button type="button" class="btn btn-outline-light btn-sm mt-2" onclick="addPromoCode()">
+            + Add Promo Code
+          </button>
+        </div>
+
+
+        <!-- ─────────────────────────────
+            Payment Methods Section
+        ───────────────────────────── -->
+        <div class="sub-card">
+          <h5>Payment Methods</h5>
+          <div class="d-flex flex-wrap gap-3">
+            <% ['PayNow','Bank Transfer','Card','Google Pay','Apple Pay'].forEach(method => { %>
+            <label class="form-check-label">
+              <input type="checkbox" class="form-check-input me-1" name="payment_methods" value="<%= method %>"
+                <%= selectedPay.includes(method) ? 'checked' : '' %>>
+              <%= method %>
+            </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- ─────────────────────────────
+            Submit Button Section
+        ───────────────────────────── -->
+        <div class="text-center">
+          <button type="submit" class="btn-gradient px-5 py-2 fs-5 d-inline-flex align-items-center gap-2">
+            <i class="bi bi-save"></i>
+            <%= event.id ? 'Save Changes' : 'Create Event' %>
+          </button>
+        </div>
+      </form>
+
+      <!-- ─────────────────────────────
+        Back to Organiser Home Link
+    ───────────────────────────── -->
+      <p class="text-center mt-4">
+        <a href="/organiser" class="btn btn-outline-light px-4">
+          ← Back to Organiser Home
+        </a>
+      </p>
+
+  </main>
+
+  <!-- ─────────────────────────────
+        Footer
+    ───────────────────────────── -->
+  <footer class="main-footer text-center mt-auto">
+    <small>&copy; 2025 Eventra. All rights reserved.</small>
+  </footer>
+
+  <!-- ─────────────────────────────
+       Scripts Section
+  ───────────────────────────── -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+          /* ─────────────────────────────
+              Initialize Character Counters
+          ───────────────────────────── */
+          const counters = [{
+              input: 'title',
+              max: 20,
+              span: 'titleCount'
+            },
+            {
+              input: 'description',
+              max: 300,
+              span: 'descCount'
+            },
+            {
+              input: 'rules',
+              max: 300,
+              span: 'rulesCount'
+            }
+          ];
+          const updateCnt = ({
+            input,
+            max,
+            span
+          }) => {
+            const el = document.getElementById(input);
+            const sp = document.getElementById(span);
+            const func = () => {
+              sp.textContent = el.value.length + ' / ' + max;
+            };
+            el.addEventListener('input', func);
+            func(); // initial
+          };
+          counters.forEach(updateCnt);
+
+          /* ─────────────────────────────
+              Round Up to Next 15 Minutes
+          ───────────────────────────── */
+          function roundUpTo15(val) {
+            const [d, t] = val.split('T');
+            const [y, m, da] = d.split('-').map(Number);
+            const [h, mi] = t.split(':').map(Number);
+            const tot = h * 60 + mi,
+              r = Math.ceil(tot / 15) * 15,
+              dt = new Date(y, m - 1, da);
+            if (r >= 1440) dt.setDate(dt.getDate() + 1);
+            const pad = n => String(n).padStart(2, '0');
+            return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(Math.floor(r/60)%24)}:${pad(r%60)}`;
+          }
+
+          /* ─────────────────────────────
+               Update Promo Code Expiry Bounds
+           ───────────────────────────── */
+          function updatePromoBounds() {
+            const start = document.getElementById('date').value;
+            const end = document.getElementById('end_date').value;
+            if (!start || !end) return;
+            const earliest = new Date(new Date(start).getTime() - 10 * 24 * 60 * 60 * 1000);
+            const fmt = d => d.toISOString().slice(0, 10);
+            document.querySelectorAll('input[name$="[expires]"]').forEach(i => {
+              i.min = fmt(earliest);
+              i.max = fmt(new Date(end));
+            });
+          }
+          /* ─────────────────────────────
+              Update Early-bird Date Bounds
+           ───────────────────────────── */
+          function updateEarlyBirdBounds() {
+            const startVal = document.getElementById('date').value;
+            if (!startVal) return;
+            const evStart = new Date(startVal),
+              ebMinDT = new Date(evStart.getTime() - 30 * 24 * 60 * 60 * 1000);
+            const fmt = d => d.toISOString().slice(0, 10);
+            ['eb_start', 'eb_end'].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.min = fmt(ebMinDT);
+                el.max = fmt(evStart);
+              }
+            });
+          }
+
+          /* ─────────────────────────────
+               Re-index Custom Concessions
+          ───────────────────────────── */
+          function updateCustomIdx() {
+            document.querySelectorAll('.custom-concession-row').forEach((row, i) => {
+              row.querySelectorAll('input').forEach(inp => {
+                inp.name = inp.name.replace(/custom_concessions\[\d+\]/, `custom_concessions[${i}]`);
+              });
+            });
+          }
+
+          /* ─────────────────────────────
+              Add Custom Concession Row
+          ───────────────────────────── */
+          window.addCustomConcession = (n = '', c = '', p = '') => {
+            const list = document.getElementById('custom-concession-list');
+            const row = document.createElement('div');
+            row.className = 'custom-concession-row';
+            row.innerHTML = `<label>Name:<input name="custom_concessions[0][name]" value="${n}" pattern="^[A-Za-z\\s]+$" required></label>
+      <label>Count:<input type="number" name="custom_concessions[0][count]" value="${c}" min="0" step="1" required></label>
+      <label>Price:<input type="number" name="custom_concessions[0][price]" value="${p}" min="0" step="0.01" required></label>
+      <button type="button" onclick="removeCustomConcession(this)">Remove</button>`;
+            list.appendChild(row);
+            updateCustomIdx();
+          };
+
+          /* ─────────────────────────────
+              Remove Custom Concession Row
+         ───────────────────────────── */
+          window.removeCustomConcession = btn => {
+            btn.parentElement.remove();
+            updateCustomIdx();
+          };
+
+
+          /* ─────────────────────────────
+              Add Promo Code Row
+          ───────────────────────────── */
+          window.addPromoCode = () => {
+            const list = document.getElementById('promo-code-list');
+            const idx = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'promo-code-row';
+            row.innerHTML = `<label>Code:
+        <input name="promo_codes[${idx}][code]" maxlength="15" required
+               pattern="^[A-Za-z]+[0-9]+$"
+               title="Promo code must start with letters, followed by numbers, no spaces"
+               oninput="this.value = this.value.toUpperCase()"></label>
+      <label>Type:<select name="promo_codes[${idx}][type]"><option value="fixed">Fixed</option><option value="percent">Percent</option></select></label>
+      <label>Amount:<input type="number" name="promo_codes[${idx}][amount]" step="0.01" required></label>
+      <label>Limit:<input type="number" name="promo_codes[${idx}][limit]"></label>
+      <label>Expiry:<input type="date" name="promo_codes[${idx}][expires]" required></label>
+      <button type="button" onclick="removePromoCode(this)">Remove</button>`;
+            list.appendChild(row);
+            updatePromoBounds();
+          };
+
+          /* ─────────────────────────────
+               Remove Promo Code Row
+           ───────────────────────────── */
+          window.removePromoCode = btn => btn.parentElement.remove();
+
+          /* ─────────────────────────────
+              Date Input Event Handlers
+          ───────────────────────────── */
+          ['date', 'end_date'].forEach(id => {
+            const el = document.getElementById(id);
+            el.addEventListener('blur', e => {
+              if (e.target.value) e.target.value = roundUpTo15(e.target.value);
+            });
+            el.addEventListener('change', () => {
+              updatePromoBounds();
+              updateEarlyBirdBounds();
+            });
+          });
+          updatePromoBounds();
+          updateEarlyBirdBounds();
+
+          /* ─────────────────────────────
+               Form Submission Validation
+           ───────────────────────────── */
+          document.getElementById('editForm').addEventListener('submit', e => {
+            ['date', 'end_date'].forEach(id => {
+              const i = document.getElementById(id);
+              if (i && i.value) i.value = roundUpTo15(i.value);
+            });
+
+            if (!document.querySelectorAll('input[name="payment_methods"]:checked').length) {
+              alert('Please select at least one payment method.');
+              e.preventDefault();
+              return;
+            }
+
+            const evStart = new Date(document.getElementById('date').value);
+            const ebCnt = parseInt(document.getElementById('eb_count').value || 0, 10);
+            const ebPrice = parseFloat(document.getElementById('eb_price').value || 0);
+            const ebS = document.getElementById('eb_start').value;
+            const ebE = document.getElementById('eb_end').value;
+
+            if (ebCnt > 0) {
+              if (ebPrice < 1) {
+                alert('Set early-bird price when tickets are offered.');
+                e.preventDefault();
+                return;
+              }
+              if (!ebS || !ebE) {
+                alert('Provide start and end dates for early-bird.');
+                e.preventDefault();
+                return;
+              }
+            } else if (ebPrice > 0) {
+              alert('Specify ticket count when setting early-bird price.');
+              e.preventDefault();
+              return;
+            }
+            if (ebS || ebE) {
+              if (!ebS || !ebE) {
+                alert('Fill both early-bird dates.');
+                e.preventDefault();
+                return;
+              }
+              const s = new Date(ebS),
+                u = new Date(ebE);
+              if (s < new Date(evStart.getTime() - 30 * 24 * 60 * 60 * 1000)) {
+                alert('Early-bird start ⩾ 1 month before.');
+                e.preventDefault();
+                return;
+              }
+              if (u >= evStart) {
+                alert('Early-bird end < event start.');
+                e.preventDefault();
+                return;
+              }
+              if (u <= s) {
+                alert('Early-bird end must be after start.');
+                e.preventDefault();
+                return;
+              }
+            }
+
+            for (const row of document.querySelectorAll('.promo-code-row')) {
+              const code = row.querySelector('input[name$="[code]"]').value.trim();
+              const amt = row.querySelector('input[name$="[amount]"]').value.trim();
+              const exp = row.querySelector('input[name$="[expires]"]').value.trim();
+              if ((code || amt) && !exp) {
+                alert('Every promo code must have an expiry date.');
+                e.preventDefault();
+                return;
+              }
+              if (!code || !amt) {
+                alert('Fill all promo-code fields.');
+                e.preventDefault();
+                return;
+              }
+            }
+
+            const built = ['full_price_count', 'student_count', 'senior_count', 'child_count']
+              .map(id => parseInt(document.getElementById(id).value || 0, 10));
+            let customSum = 0;
+            document.querySelectorAll('.custom-concession-row').forEach(row => {
+              customSum += parseInt(row.querySelector('input[name$="[count]"]').value || 0, 10);
+            });
+            const total = built.reduce((a, b) => a + b, 0) + ebCnt + customSum;
+            const cap = parseInt(document.getElementById('capacity').value, 10);
+            if (total !== cap) {
+              alert('Sum of all ticket counts must equal capacity.');
+              e.preventDefault();
+            }
+          });
+
+          /* ─────────────────────────────
+              Promo Discount Limits Adjustment
+          ───────────────────────────── */
+        const fullPriceInput = document.querySelector('[name="full_price_amount"]');
+
+        document.querySelectorAll('.promo-code-row').forEach(row => {
+          const typeSelect = row.querySelector('[name$="[type]"]');
+          const amountInput = row.querySelector('[name$="[amount]"]');
+
+          function updateAmountLimits () {
+            const fullPrice = parseFloat(fullPriceInput?.value || '0');
+
+            if (typeSelect.value === 'percent') {
+              amountInput.min = 1;
+              amountInput.max = 90;
+              amountInput.placeholder = '1–90';
+            } else if (typeSelect.value === 'fixed') {
+              amountInput.min = 1;
+              amountInput.max = fullPrice || 99999;
+              amountInput.placeholder = `1–${fullPrice || '...'}`;
+            }
+          }
+
+          updateAmountLimits();
+          typeSelect.addEventListener('change', updateAmountLimits);
+        });
+      });
+</script>
+</body>
+</html>
+

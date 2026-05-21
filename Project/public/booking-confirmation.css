@@ -1,0 +1,126 @@
+/* ─────────────────────────────
+ *  Global Background & Layout
+ * ───────────────────────────── */
+.main-home-bg {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+}
+
+/* ─────────────────────────────
+ *  Header & Navigation
+ * ───────────────────────────── */
+.main-header {
+  height: 80px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo h3 { font-weight: 700; margin: 0; }
+
+.nav-links a  {
+  color:#fff;
+  margin-left:1rem;
+  font-weight:500;
+  text-decoration:none;
+  transition:.3s;
+}
+.nav-links a:hover{
+  background:linear-gradient(to right,#fc466b,#3f5efb);
+  color:transparent;
+  background-clip:text;
+}
+
+/* ─────────────────────────────
+ *  Typography & Utilities
+ * ───────────────────────────── */
+h1                 { color:#4ade80; }
+.text-success      { color:#22c55e !important; }
+
+.section-title     { font-weight:600; margin-bottom:.75rem; }
+.detail-label      { width:140px; display:inline-block; color:#aaa; }
+
+hr.border-sep      { border:none; border-top:3px solid #fff;                 margin:1.5rem 0; }
+hr.sub-sep         { border:none; border-top:1px solid rgba(255,255,255,.25); margin:1rem 0; }
+
+/* ─────────────────────────────
+ *  Buttons
+ * ───────────────────────────── */
+.btn-gradient{
+  background:linear-gradient(135deg,#ff0058,#6a5af9);
+  color:#fff;
+  border:none;
+  padding:1rem 2rem;
+  border-radius:10px;
+  font-weight:700;
+  font-size:1rem;
+  text-decoration:none;
+  display:inline-block;
+  transition:.3s ease;
+}
+.btn-gradient:hover{ opacity:.92; transform:scale(1.02); }
+
+/* ─────────────────────────────
+ *  Lists
+ * ───────────────────────────── */
+.guest-list    { padding-left:1.2rem; }
+.guest-list li { margin-bottom:.4rem; }
+
+/* ─────────────────────────────
+ *  Card Components
+ * ───────────────────────────── */
+.print-card{
+  background:linear-gradient(135deg,rgba(15,12,41,.85),rgba(48,43,99,.85));
+  color:#fff;
+  border-radius:16px;
+  padding:2rem 1.5rem;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+  max-width:360px;
+  width:100%;
+  font-size:.9rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  transition:.3s ease;
+}
+.print-card h2                { color:#6a5af9; font-size:2.8rem; margin:0; }
+.print-card .month,
+.print-card .datetime,
+.print-card .fw-semibold,
+.print-card .text-primary     { color:#fff !important; }
+.print-card .btn-gradient{
+  font-size:.85rem;
+  padding:.5rem 1.2rem;
+  width:100%;
+  margin-top:1rem;
+}
+
+/* ─────────────────────────────
+ *  Footer 
+ * ───────────────────────────── */
+.main-footer {
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-top: auto;
+  padding: 0.5rem;
+}
+
+/* ─────────────────────────────
+ *  Animations  
+ * ───────────────────────────── */
+.fade-in      { transform:translateY(20px);  transition:opacity .6s, transform .6s; }
+.fade-in-up   { opacity:0; transform:translateY(40px); transition:opacity .6s, transform .6s; }
+.visible.fade-in,
+.visible.fade-in-up { opacity:1; transform:translateY(0); }
+
+/* ─────────────────────────────
+ *  Responsive Tweaks 
+ * ───────────────────────────── */
+@media (max-width:768px){
+  .print-card{ max-width:100%; margin-top:2rem; }
+}

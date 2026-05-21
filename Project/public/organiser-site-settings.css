@@ -1,0 +1,193 @@
+/* ─────────────────────────────
+ *  Global Background & Layout
+ * ───────────────────────────── */
+.main-home-bg {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+/* ─────────────────────────────
+ *  Header & Navigation
+ * ───────────────────────────── */
+.main-header {
+  height: 80px;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo h3 {
+  font-weight: 700;
+  margin: 0;
+}
+
+.nav-links a {
+  color: white;
+  margin-left: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.nav-links a:hover {
+  background: linear-gradient(to right, #fc466b, #3f5efb);
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+/* ─────────────────────────────
+ *  Buttons
+ *   – Gradient
+ *   – Outline
+ * ───────────────────────────── */
+.btn-gradient {
+  background: linear-gradient(to right, #ff0058, #6a5af9);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+.btn-gradient:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.btn-outline-light {
+  border: 2px solid #fff;
+  color: #fff;
+  border-radius: 12px;
+  font-weight: 600;
+  background-color: transparent;
+  transition: all 0.3s ease-in-out;
+}
+.btn-outline-light:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff !important;
+  transform: scale(1.02);
+}
+
+/* ─────────────────────────────
+ *  Utility Animations & Hover Effects
+ * ───────────────────────────── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.fade-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hover-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.hover-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* ─────────────────────────────
+ *  Preview Section Cards
+ * ───────────────────────────── */
+.preview-section .card {
+  background: linear-gradient(135deg, rgba(15,12,41,0.85), rgba(48,43,99,0.85));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1rem;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+  padding: 2rem;
+}
+.preview-section h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.preview-section #previewDesc {
+  color: rgba(255,255,255,0.85);
+}
+
+/* ─────────────────────────────
+ *  Form Card Styling
+ * ───────────────────────────── */
+form.card {
+  background: linear-gradient(135deg, rgba(15,12,41,0.85), rgba(48,43,99,0.85));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1rem;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+  padding: 2rem;
+}
+.form-label {
+  font-weight: 600;
+  color: #fff !important;
+}
+.form-control {
+  border-radius: 8px;
+}
+.form-text {
+  font-size: 0.85rem;
+}
+.text-white-50 {
+  color: rgba(255,255,255,0.6) !important;
+}
+input::placeholder {
+  color: #999;
+}
+
+/* ─────────────────────────────
+ *  Form Layout Helpers
+ * ───────────────────────────── */
+form.card .d-flex {
+  flex-wrap: wrap;
+}
+form.card .btn-gradient,
+form.card .btn-outline-light {
+  flex: 1 1 160px;
+  text-align: center;
+}
+
+/* ─────────────────────────────
+ *  Rich Text Editor (Quill.js)
+ * ───────────────────────────── */
+.ql-toolbar {
+  border-radius: 8px 8px 0 0;
+}
+.ql-container {
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  color: #000;
+}
+.ql-editor {
+  min-height: 120px;
+  font-size: 1rem;
+}
+
+/* ─────────────────────────────
+ *  Footer
+ * ───────────────────────────── */
+.main-footer {
+  background: rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  font-size: 0.9rem;
+  margin-top: auto;
+  padding: 0.5rem;
+}
+
+/* ─────────────────────────────
+ *  Responsive Tweaks (≤ 768px)
+ * ───────────────────────────── */
+@media (max-width: 768px) {
+  .preview-section h3 {
+    font-size: 1.25rem;
+  }
+  .btn-gradient,
+  .btn-outline-light {
+    width: 100%;
+  }
+}
