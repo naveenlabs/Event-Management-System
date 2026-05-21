@@ -51,8 +51,6 @@ Email                    Password
 organiser1@gmail.com     Organiser@1
 organiser2@gmail.com     Organiser@2
 organiser3@gmail.com     Organiser@3
-organiser4@gmail.com     Organiser@4
-organiser5@gmail.com     Organiser@5
 
 These are stored in routes/login.js for demonstration purposes.
 
